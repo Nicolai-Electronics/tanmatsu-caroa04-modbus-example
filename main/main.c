@@ -17,6 +17,25 @@
 // Constants
 static char const TAG[] = "main";
 
+#define BLACK 0xFF000000
+#define WHITE 0xFFFFFFFF
+#define RED   0xFFFF0000
+
+// On the CATT to RS485 and CAN adapter port "1" is RS485 and port "B" is CAN bus, only port "2" can be used by this
+// example On the CATT to RS485 and RS422 adapter both port "1" and port "2" can be used, set the define below to select
+// the second port
+// #define PORT2
+
+#ifndef PORT2
+#define PIN_TX  34
+#define PIN_RX  5
+#define PIN_DIR 3
+#else
+#define PIN_TX  4
+#define PIN_RX  15
+#define PIN_DIR 2
+#endif
+
 // Global variables
 static size_t                       display_h_res        = 0;
 static size_t                       display_v_res        = 0;
@@ -106,16 +125,13 @@ void app_main(void) {
     pax_buf_reversed(&fb, display_data_endian == LCD_RGB_DATA_ENDIAN_BIG);
     pax_buf_set_orientation(&fb, orientation);
 
-#define BLACK 0xFF000000
-#define WHITE 0xFFFFFFFF
-#define RED   0xFFFF0000
-
     // Get input event queue from BSP
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
 
     // Main section of the app
 
-    ESP_ERROR_CHECK(modbus_driver_install(UART_NUM_0, 34, 5, 3, 9600, UART_PARITY_DISABLE, UART_STOP_BITS_1));
+    ESP_ERROR_CHECK(
+        modbus_driver_install(UART_NUM_0, PIN_RX, PIN_TX, PIN_DIR, 9600, UART_PARITY_DISABLE, UART_STOP_BITS_1));
 
     pax_simple_rect(&fb, WHITE, 0, 0, pax_buf_get_width(&fb), 72);
     pax_draw_text(&fb, BLACK, pax_font_sky_mono, 16, 0, 0, "Starting...");
